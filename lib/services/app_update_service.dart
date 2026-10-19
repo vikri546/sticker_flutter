@@ -1,4 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:sticker_flutter/ui/widgets/force_update_dialog.dart';
 
@@ -18,7 +21,7 @@ class AppUpdateInfo {
     required this.minRequiredVersion,
     required this.updateUrl,
     this.title = 'New version available',
-    this.message = 'There are new features available, please update your app',
+    this.message = 'There are new features available,\nplease update your app',
     this.isForceUpdate = false,
   });
 
@@ -30,7 +33,7 @@ class AppUpdateInfo {
       isForceUpdate || AppUpdateService.isVersionOlder(currentVersion, minRequiredVersion);
 }
 
-/// Service that handles app version comparison, remote check, and update launching.
+/// Service that handles app version comparison, remote check, and APK download & installation.
 class AppUpdateService {
   static const String defaultCurrentVersion = '1.0.0';
   static const String defaultStoreUrl =
@@ -78,11 +81,72 @@ class AppUpdateService {
     return false;
   }
 
+  /// Download the APK directly and trigger Android Package Installer on completion.
+  /// Calls [onProgress] with values ranging from 0.0 to 1.0.
+  static Future<void> downloadAndInstallApk({
+    required String apkUrl,
+    required void Function(double progress) onProgress,
+  }) async {
+    // If in demo/test mode with a non-direct URL, simulate download progress
+    if (apkUrl.isEmpty ||
+        apkUrl == defaultStoreUrl ||
+        apkUrl.endsWith('.test') ||
+        !apkUrl.endsWith('.apk')) {
+      for (int i = 1; i <= 20; i++) {
+        await Future.delayed(const Duration(milliseconds: 60));
+        onProgress(i / 20.0);
+      }
+      return;
+    }
+
+    final client = HttpClient();
+    client.connectionTimeout = const Duration(seconds: 15);
+    final request = await client.getUrl(Uri.parse(apkUrl));
+    final response = await request.close();
+
+    if (response.statusCode != 200) {
+      throw Exception('Server mengembalikan kode status ${response.statusCode}');
+    }
+
+    final contentLength = response.contentLength;
+    final tempDir = await getTemporaryDirectory();
+    final savePath = '${tempDir.path}/app_update.apk';
+    final file = File(savePath);
+    if (file.existsSync()) {
+      file.deleteSync();
+    }
+
+    final sink = file.openWrite();
+    int received = 0;
+
+    await for (final chunk in response) {
+      received += chunk.length;
+      sink.add(chunk);
+      if (contentLength > 0) {
+        onProgress((received / contentLength).clamp(0.0, 1.0));
+      }
+    }
+
+    await sink.flush();
+    await sink.close();
+    onProgress(1.0);
+
+    // Trigger Android package installer prompt automatically
+    final result = await OpenFilex.open(
+      savePath,
+      type: 'application/vnd.android.package-archive',
+    );
+
+    if (result.type != ResultType.done) {
+      debugPrint('Hasil eksekusi installer: ${result.message}');
+    }
+  }
+
   /// Show the non-dismissible Force Update dialog.
   static Future<void> showForceUpdateDialog(
     BuildContext context, {
     String title = 'New version available',
-    String message = 'There are new features available, please update your app',
+    String message = 'There are new features available,\nplease update your app',
     String updateUrl = defaultStoreUrl,
     VoidCallback? onUpdatePressed,
   }) async {

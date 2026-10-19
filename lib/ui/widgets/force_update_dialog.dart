@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:sticker_flutter/services/app_update_service.dart';
 
 /// Modal dialog strictly enforcing an application update.
-/// Designed to precisely match the clean iOS-style alert popup.
-class ForceUpdateDialog extends StatelessWidget {
+/// Displays an iOS-style alert popup and switches to a clean progress bar during APK download.
+class ForceUpdateDialog extends StatefulWidget {
   final String title;
   final String message;
   final String updateUrl;
@@ -17,11 +17,45 @@ class ForceUpdateDialog extends StatelessWidget {
     this.onUpdatePressed,
   });
 
-  void _handleUpdate(BuildContext context) {
-    if (onUpdatePressed != null) {
-      onUpdatePressed!();
-    } else {
-      AppUpdateService.launchUpdateUrl(updateUrl);
+  @override
+  State<ForceUpdateDialog> createState() => _ForceUpdateDialogState();
+}
+
+class _ForceUpdateDialogState extends State<ForceUpdateDialog> {
+  bool _isDownloading = false;
+  double _downloadProgress = 0.0;
+  String? _errorMessage;
+
+  Future<void> _startDownloadAndInstall() async {
+    if (widget.onUpdatePressed != null) {
+      widget.onUpdatePressed!();
+      return;
+    }
+
+    setState(() {
+      _isDownloading = true;
+      _downloadProgress = 0.0;
+      _errorMessage = null;
+    });
+
+    try {
+      await AppUpdateService.downloadAndInstallApk(
+        apkUrl: widget.updateUrl,
+        onProgress: (progress) {
+          if (mounted) {
+            setState(() {
+              _downloadProgress = progress;
+            });
+          }
+        },
+      );
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isDownloading = false;
+          _errorMessage = 'Gagal mengunduh pembaruan. Silakan coba lagi.';
+        });
+      }
     }
   }
 
@@ -57,7 +91,7 @@ class ForceUpdateDialog extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      title,
+                      widget.title,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 17,
@@ -68,7 +102,7 @@ class ForceUpdateDialog extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      message,
+                      widget.message,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 13,
@@ -77,6 +111,17 @@ class ForceUpdateDialog extends StatelessWidget {
                         letterSpacing: -0.2,
                       ),
                     ),
+                    if (_errorMessage != null) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        _errorMessage!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.redAccent,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -88,30 +133,46 @@ class ForceUpdateDialog extends StatelessWidget {
                 color: Color(0xFFD1D1D6),
               ),
 
-              // Action Button ("Update")
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => _handleUpdate(context),
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(16),
-                    bottomRight: Radius.circular(16),
+              // Action Area: switches between "Update" button and clean Progress Bar
+              if (_isDownloading)
+                Container(
+                  height: 46,
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: _downloadProgress > 0 ? _downloadProgress : null,
+                      minHeight: 6,
+                      backgroundColor: const Color(0xFFE5E5EA),
+                      valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF007AFF)),
+                    ),
                   ),
-                  child: Container(
-                    height: 46,
-                    alignment: Alignment.center,
-                    child: const Text(
-                      'Update',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF007AFF),
-                        letterSpacing: -0.4,
+                )
+              else
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: _startDownloadAndInstall,
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(16),
+                      bottomRight: Radius.circular(16),
+                    ),
+                    child: Container(
+                      height: 46,
+                      alignment: Alignment.center,
+                      child: Text(
+                        _errorMessage != null ? 'Coba Lagi' : 'Update',
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF007AFF),
+                          letterSpacing: -0.4,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
         ),

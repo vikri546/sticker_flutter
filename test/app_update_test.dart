@@ -78,5 +78,37 @@ void main() {
       await tester.pump();
       expect(updatePressed, isTrue);
     });
+
+    testWidgets('Tapping Update switches to clean progress bar without percentage text', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: ForceUpdateDialog(
+              title: 'New version available',
+              message: 'There are new features available,\nplease update your app',
+              updateUrl: 'https://example.com/test.apk.test',
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('Update'), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+
+      // Tap Update
+      await tester.tap(find.text('Update'));
+      await tester.pump();
+
+      // Progress bar should now be visible!
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      // Ensure no percentage symbol is present on screen
+      expect(find.textContaining('%'), findsNothing);
+
+      // Advance time so all simulated download timers complete
+      await tester.pump(const Duration(seconds: 2));
+    });
   });
 }
