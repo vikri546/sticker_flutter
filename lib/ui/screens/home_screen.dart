@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:sticker_flutter/services/app_update_service.dart';
 import 'package:sticker_flutter/services/sticker_pack_manager.dart';
 import 'package:sticker_flutter/services/whatsapp_stickers_service.dart';
 import 'package:sticker_flutter/ui/screens/pack_detail_screen.dart';
@@ -63,27 +62,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: const Icon(Icons.refresh_rounded),
                 tooltip: 'Segarkan Status WhatsApp',
                 onPressed: () => _manager.refreshInstalledStatuses(),
-              ),
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert_rounded),
-                tooltip: 'Menu',
-                onSelected: (value) {
-                  if (value == 'force_update') {
-                    AppUpdateService.showForceUpdateDialog(context);
-                  }
-                },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'force_update',
-                    child: Row(
-                      children: [
-                        Icon(Icons.system_update_rounded, size: 20, color: Color(0xFF007AFF)),
-                        SizedBox(width: 10),
-                        Text('Tes Tampilan Force Update'),
-                      ],
-                    ),
-                  ),
-                ],
               ),
             ],
           ),
