@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:sticker_flutter/ui/screens/home_screen.dart';
 
 void main() {
@@ -9,22 +10,16 @@ void main() {
 class StickerApp extends StatelessWidget {
   const StickerApp({super.key});
 
-  /// Global notifier for theme mode changes across the app.
-  static final ValueNotifier<ThemeMode> themeModeNotifier =
-      ValueNotifier<ThemeMode>(ThemeMode.system);
-
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<ThemeMode>(
-      valueListenable: themeModeNotifier,
-      builder: (context, themeMode, _) {
-        return MaterialApp(
-          title: 'Sticko',
-          debugShowCheckedModeBanner: false,
-          themeMode: themeMode,
+    return MaterialApp(
+      title: 'Sticko',
+      debugShowCheckedModeBanner: false,
+      themeMode: ThemeMode.dark,
       theme: ThemeData(
         useMaterial3: true,
         splashFactory: InkRipple.splashFactory,
+        textTheme: GoogleFonts.plusJakartaSansTextTheme(ThemeData.light().textTheme),
         colorSchemeSeed: const Color(0xFF128C7E),
         scaffoldBackgroundColor: const Color(0xFFF9FBFB),
         appBarTheme: const AppBarTheme(
@@ -42,6 +37,7 @@ class StickerApp extends StatelessWidget {
         useMaterial3: true,
         brightness: Brightness.dark,
         splashFactory: InkRipple.splashFactory,
+        textTheme: GoogleFonts.plusJakartaSansTextTheme(ThemeData.dark().textTheme),
         colorSchemeSeed: const Color(0xFF25D366),
         scaffoldBackgroundColor: const Color(0xFF111B21),
         appBarTheme: const AppBarTheme(
@@ -55,9 +51,7 @@ class StickerApp extends StatelessWidget {
           elevation: 0,
         ),
       ),
-        home: const HomeScreen(),
-        );
-      },
+      home: const HomeScreen(),
     );
   }
 }

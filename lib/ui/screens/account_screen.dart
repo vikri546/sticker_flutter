@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -226,23 +227,6 @@ class _AccountScreenState extends State<AccountScreen> {
         return Scaffold(
           extendBodyBehindAppBar: true,
           backgroundColor: Colors.transparent,
-          appBar: widget.showAppBar
-              ? AppBar(
-                  elevation: 0,
-                  backgroundColor: Colors.transparent,
-                  surfaceTintColor: Colors.transparent,
-                  centerTitle: true,
-                  title: Text(
-                    'Sticko',
-                    style: GoogleFonts.alexBrush(
-                      fontSize: 42,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFFF09A06),
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                )
-              : null,
           body: Stack(
             fit: StackFit.expand,
             children: [
@@ -252,18 +236,40 @@ class _AccountScreenState extends State<AccountScreen> {
                 errorBuilder: (_, __, ___) => const SizedBox.shrink(),
               ),
               SafeArea(
-                top: widget.showAppBar,
+                top: true,
                 bottom: false,
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 130),
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 130),
                   children: [
-              // 1. Creator Profile Card
-              _buildCreatorProfileCard(
-                isDark: isDark,
-                totalPacks: totalPacks,
-                totalStickers: totalStickers,
-                installedPacks: installedPacks,
-              ),
+                    if (widget.showAppBar) ...[
+                      AppBar(
+                        elevation: 0,
+                        backgroundColor: Colors.transparent,
+                        surfaceTintColor: Colors.transparent,
+                        centerTitle: true,
+                        automaticallyImplyLeading: false,
+                        title: Text(
+                          'Sticko',
+                          style: GoogleFonts.alexBrush(
+                            fontSize: 42,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFFF09A06),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                    ] else
+                      const SizedBox(height: 16),
+
+                    // 1. Creator Profile Card
+                    _buildCreatorProfileCard(
+                      isDark: isDark,
+                      totalPacks: totalPacks,
+                      totalStickers: totalStickers,
+                      installedPacks: installedPacks,
+                    ),
               const SizedBox(height: 20),
 
               // 2. Section: Permissions & Preferences (New Simplified Core Feature)
@@ -272,11 +278,8 @@ class _AccountScreenState extends State<AccountScreen> {
                 isDark: isDark,
                 children: [
                   _SettingsListTile(
-                    icon: Icons.tune_rounded,
-                    iconColor: const Color(0xFFF09A06),
                     title: 'Permissions & Preferences',
-                    subtitle: 'Izin galeri, kamera, notifikasi, & tema terang/gelap',
-                    trailingWidget: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
+                    subtitle: 'Izin akses galeri foto, kamera, & notifikasi',
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
@@ -295,18 +298,14 @@ class _AccountScreenState extends State<AccountScreen> {
                 isDark: isDark,
                 children: [
                   _SettingsListTile(
-                    icon: Icons.cleaning_services_rounded,
-                    iconColor: Colors.deepOrange,
                     title: 'Bersihkan Cache Sementara',
                     subtitle: 'Ukuran cache saat ini: $_cacheSizeText',
                     trailingBadge: 'Bersihkan',
                     trailingBadgeColor: Colors.deepOrange,
                     onTap: _clearCache,
                   ),
-                  const Divider(height: 1, indent: 56),
+                  Divider(height: 1, indent: 20, endIndent: 20, color: isDark ? const Color(0x24FFFFFF) : const Color(0x1F000000)),
                   _SettingsListTile(
-                    icon: Icons.system_update_rounded,
-                    iconColor: const Color(0xFF128C7E),
                     title: 'Periksa Pembaruan APK',
                     subtitle: 'Versi saat ini: ${AppUpdateService.defaultCurrentVersion} (Terbaru)',
                     trailingWidget: _isCheckingUpdate
@@ -315,21 +314,17 @@ class _AccountScreenState extends State<AccountScreen> {
                             height: 18,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
+                        : null,
                     onTap: _isCheckingUpdate ? null : _checkForUpdate,
                   ),
-                  const Divider(height: 1, indent: 56),
+                  Divider(height: 1, indent: 20, endIndent: 20, color: isDark ? const Color(0x24FFFFFF) : const Color(0x1F000000)),
                   _SettingsListTile(
-                    icon: Icons.menu_book_rounded,
-                    iconColor: const Color(0xFF0288D1),
                     title: 'Panduan Menambahkan ke WA',
                     subtitle: 'Langkah mudah memunculkan stiker di keyboard',
                     onTap: _showTutorialDialog,
                   ),
-                  const Divider(height: 1, indent: 56),
+                  Divider(height: 1, indent: 20, endIndent: 20, color: isDark ? const Color(0x24FFFFFF) : const Color(0x1F000000)),
                   _SettingsListTile(
-                    icon: Icons.privacy_tip_rounded,
-                    iconColor: Colors.teal,
                     title: 'Kebijakan Privasi & Data',
                     subtitle: '100% lokal, aman & tanpa pelacak luar',
                     onTap: _showPrivacyDialog,
@@ -342,8 +337,9 @@ class _AccountScreenState extends State<AccountScreen> {
               Center(
                 child: Text(
                   'Sticker Maker v1.0.0+1 • Made with Flutter',
-                  style: TextStyle(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
+                    fontWeight: FontWeight.w500,
                     color: isDark ? Colors.grey[400] : const Color(0xFFB0BEC5),
                   ),
                 ),
@@ -365,22 +361,9 @@ class _AccountScreenState extends State<AccountScreen> {
     required int totalStickers,
     required int installedPacks,
   }) {
-    return Container(
+    return _LiquidGlassCard(
+      borderRadius: 5,
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E2B32) : Colors.white,
-        borderRadius: BorderRadius.circular(5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(isDark ? 50 : 15),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-        border: Border.all(
-          color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
-        ),
-      ),
       child: Column(
         children: [
           Row(
@@ -424,22 +407,26 @@ class _AccountScreenState extends State<AccountScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
+                    Row(
                       children: [
                         Text(
                           'Kreator Stiker',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 17,
+                            color: Colors.white,
+                          ),
                         ),
-                        SizedBox(width: 6),
-                        Icon(Icons.verified_rounded, color: Color(0xFF25D366), size: 18),
+                        const SizedBox(width: 6),
+                        const Icon(Icons.verified_rounded, color: Color(0xFF25D366), size: 18),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'Penyimpanan Lokal Aktif',
-                      style: TextStyle(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        color: isDark ? Colors.grey[300] : Colors.grey[700],
                       ),
                     ),
                   ],
@@ -451,16 +438,16 @@ class _AccountScreenState extends State<AccountScreen> {
           Container(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF111B21) : const Color(0xFFF7F9FA),
+              color: isDark ? const Color(0x55000000) : const Color(0x33FFFFFF),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildStatItem('Paket', '$totalPacks', isDark),
-                Container(width: 1, height: 28, color: Colors.grey.withAlpha(50)),
+                Container(width: 1, height: 28, color: Colors.white.withAlpha(25)),
                 _buildStatItem('Stiker', '$totalStickers', isDark),
-                Container(width: 1, height: 28, color: Colors.grey.withAlpha(50)),
+                Container(width: 1, height: 28, color: Colors.white.withAlpha(25)),
                 _buildStatItem('Di WA', '$installedPacks', isDark),
               ],
             ),
@@ -475,18 +462,19 @@ class _AccountScreenState extends State<AccountScreen> {
       children: [
         Text(
           value,
-          style: const TextStyle(
+          style: GoogleFonts.plusJakartaSans(
             fontSize: 17,
             fontWeight: FontWeight.bold,
-            color: Color(0xFFF09A06),
+            color: const Color(0xFFF09A06),
           ),
         ),
         const SizedBox(height: 2),
         Text(
           label,
-          style: TextStyle(
+          style: GoogleFonts.plusJakartaSans(
             fontSize: 12,
-            color: isDark ? Colors.grey[400] : Colors.grey[600],
+            fontWeight: FontWeight.w500,
+            color: isDark ? Colors.grey[300] : Colors.grey[600],
           ),
         ),
       ],
@@ -494,15 +482,16 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   Widget _buildSectionHeader(String title) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 6),
+      padding: const EdgeInsets.only(left: 6, bottom: 8, top: 4),
       child: Text(
         title,
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 0.8,
-          color: const Color(0xFFB0BEC5),
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 1.1,
+          color: isDark ? const Color(0xFFCFD8DC) : const Color(0xFF546E7A),
         ),
       ),
     );
@@ -512,20 +501,83 @@ class _AccountScreenState extends State<AccountScreen> {
     required bool isDark,
     required List<Widget> children,
   }) {
-    return Material(
-      color: isDark ? const Color(0xFF1E2B32) : Colors.white,
-      borderRadius: BorderRadius.circular(5),
-      elevation: 0,
-      clipBehavior: Clip.antiAlias,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(5),
-          border: Border.all(
-            color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+    return _LiquidGlassCard(
+      borderRadius: 5,
+      child: Column(
+        children: children,
+      ),
+    );
+  }
+}
+
+/// Liquid Glass card with real-time backdrop blur, multi-stop reflection gradient,
+/// and soft ambient drop shadow without borders.
+class _LiquidGlassCard extends StatelessWidget {
+  final Widget child;
+  final double borderRadius;
+  final EdgeInsetsGeometry? padding;
+  final EdgeInsetsGeometry? margin;
+  final double blur;
+
+  const _LiquidGlassCard({
+    required this.child,
+    this.borderRadius = 5.0,
+    this.padding,
+    this.margin,
+    this.blur = 18.0,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final radius = BorderRadius.circular(borderRadius);
+
+    return Container(
+      margin: margin,
+      decoration: BoxDecoration(
+        borderRadius: radius,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(isDark ? 90 : 25),
+            blurRadius: 24,
+            offset: const Offset(0, 6),
           ),
-        ),
-        child: Column(
-          children: children,
+          BoxShadow(
+            color: const Color(0xFFF09A06).withAlpha(isDark ? 12 : 8),
+            blurRadius: 18,
+            offset: const Offset(0, 0),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: radius,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+          child: Container(
+            padding: padding,
+            decoration: BoxDecoration(
+              borderRadius: radius,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isDark
+                    ? const [
+                        Color(0x28FFFFFF), // Specular light highlight reflection
+                        Color(0x751E2B32), // Frosted dark teal glass
+                        Color(0xB0111B21), // Deep liquid glass base
+                      ]
+                    : const [
+                        Color(0xD9FFFFFF),
+                        Color(0x80FFFFFF),
+                      ],
+                stops: isDark ? const [0.0, 0.40, 1.0] : null,
+              ),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: child,
+            ),
+          ),
         ),
       ),
     );
@@ -533,8 +585,6 @@ class _AccountScreenState extends State<AccountScreen> {
 }
 
 class _SettingsListTile extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
   final String title;
   final String subtitle;
   final String? trailingBadge;
@@ -543,8 +593,6 @@ class _SettingsListTile extends StatelessWidget {
   final VoidCallback? onTap;
 
   const _SettingsListTile({
-    required this.icon,
-    required this.iconColor,
     required this.title,
     required this.subtitle,
     this.trailingBadge,
@@ -560,48 +608,50 @@ class _SettingsListTile extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: iconColor.withAlpha(25),
-          borderRadius: BorderRadius.circular(5),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+        title: Text(
+          title,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: isDark ? Colors.white : const Color(0xFF1E2B32),
+            letterSpacing: -0.1,
+          ),
         ),
-        child: Icon(icon, color: iconColor, size: 22),
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-      ),
-      subtitle: Text(
-        subtitle,
-        style: TextStyle(
-          fontSize: 12,
-          color: isDark ? Colors.grey[400] : Colors.grey[600],
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 3),
+          child: Text(
+            subtitle,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12.5,
+              fontWeight: FontWeight.normal,
+              color: isDark ? const Color(0xFFB0BEC5) : const Color(0xFF607D8B),
+              height: 1.35,
+            ),
+          ),
         ),
-      ),
-      trailing: trailingWidget ??
-          (trailingBadge != null
-              ? Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: (trailingBadgeColor ?? const Color(0xFF128C7E)).withAlpha(25),
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: Text(
-                    trailingBadge!,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: trailingBadgeColor ?? const Color(0xFF128C7E),
+        trailing: trailingWidget ??
+            (trailingBadge != null
+                ? Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: (trailingBadgeColor ?? const Color(0xFF128C7E)).withAlpha(25),
+                      borderRadius: BorderRadius.circular(5),
                     ),
-                  ),
-                )
-              : const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey)),
-      onTap: onTap,
-    ),
-  );
- }
+                    child: Text(
+                      trailingBadge!,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.bold,
+                        color: trailingBadgeColor ?? const Color(0xFF128C7E),
+                      ),
+                    ),
+                  )
+                : null),
+        onTap: onTap,
+      ),
+    );
+  }
 }
 
 class _TutorialStep extends StatelessWidget {
@@ -630,8 +680,8 @@ class _TutorialStep extends StatelessWidget {
           alignment: Alignment.center,
           child: Text(
             number,
-            style: const TextStyle(
-              color: Color(0xFF3B1E00),
+            style: GoogleFonts.plusJakartaSans(
+              color: const Color(0xFF3B1E00),
               fontWeight: FontWeight.bold,
               fontSize: 12,
             ),
@@ -644,12 +694,19 @@ class _TutorialStep extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
               ),
               const SizedBox(height: 2),
               Text(
                 desc,
-                style: const TextStyle(fontSize: 12, color: Colors.grey, height: 1.35),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5,
+                  color: Colors.grey[400],
+                  height: 1.35,
+                ),
               ),
             ],
           ),

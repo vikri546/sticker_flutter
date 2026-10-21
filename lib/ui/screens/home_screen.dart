@@ -18,12 +18,20 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _manager = StickerPackManager();
+  late final PageController _pageController;
   int _currentTabIndex = 0;
 
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(initialPage: _currentTabIndex);
     _manager.initialize();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   void _openCreatePackDialog() async {
@@ -52,25 +60,14 @@ class _HomeScreenState extends State<HomeScreen> {
           extendBody: true,
           extendBodyBehindAppBar: true,
           backgroundColor: Colors.transparent,
-          appBar: _currentTabIndex == 0
-              ? AppBar(
-                  elevation: 0,
-                  backgroundColor: Colors.transparent,
-                  surfaceTintColor: Colors.transparent,
-                  centerTitle: true,
-                  title: Text(
-                    'Sticko',
-                    style: GoogleFonts.alexBrush(
-                      fontSize: 42,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFFF09A06),
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                )
-              : null,
-          body: IndexedStack(
-            index: _currentTabIndex,
+          body: PageView(
+            controller: _pageController,
+            physics: const ClampingScrollPhysics(),
+            onPageChanged: (index) {
+              setState(() {
+                _currentTabIndex = index;
+              });
+            },
             children: [
               Stack(
                 fit: StackFit.expand,
@@ -83,11 +80,32 @@ class _HomeScreenState extends State<HomeScreen> {
                   SafeArea(
                     top: true,
                     bottom: false,
-                    child: _manager.isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : packs.isEmpty
-                            ? _buildEmptyState()
-                            : _buildPacksList(packs),
+                    child: Column(
+                      children: [
+                        AppBar(
+                          elevation: 0,
+                          backgroundColor: Colors.transparent,
+                          surfaceTintColor: Colors.transparent,
+                          centerTitle: true,
+                          title: Text(
+                            'Sticko',
+                            style: GoogleFonts.alexBrush(
+                              fontSize: 42,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFFF09A06),
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: _manager.isLoading
+                              ? const Center(child: CircularProgressIndicator())
+                              : packs.isEmpty
+                                  ? _buildEmptyState()
+                                  : _buildPacksList(packs),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -103,9 +121,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   FloatingPillNavBar(
                     selectedIndex: _currentTabIndex,
                     onTabSelected: (index) {
-                      setState(() {
-                        _currentTabIndex = index;
-                      });
+                      if (_currentTabIndex != index) {
+                        setState(() {
+                          _currentTabIndex = index;
+                        });
+                        _pageController.animateToPage(
+                          index,
+                          duration: const Duration(milliseconds: 320),
+                          curve: Curves.easeInOutCubic,
+                        );
+                      }
                     },
                   ),
                 ],

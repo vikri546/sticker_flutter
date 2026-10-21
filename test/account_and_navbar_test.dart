@@ -136,6 +136,21 @@ void main() {
       await tester.tap(find.text('Mengerti'));
       await tester.pumpAndSettle();
       expect(find.text('Cara Menggunakan Stiker'), findsNothing);
+
+      // Verify header is not sticky (it scrolls away when dragging the ListView on standard mobile viewport)
+      tester.view.physicalSize = const Size(800, 600);
+      await tester.pump();
+      expect(find.text('Sticko'), findsOneWidget);
+
+      await tester.drag(find.byType(ListView), const Offset(0, -300));
+      await tester.pumpAndSettle();
+      // It scrolled completely offscreen (non-sticky)
+      expect(find.text('Sticko'), findsNothing);
+
+      // Dragging back down brings it back
+      await tester.drag(find.byType(ListView), const Offset(0, 300));
+      await tester.pumpAndSettle();
+      expect(find.text('Sticko'), findsOneWidget);
     });
   });
 
@@ -205,8 +220,16 @@ void main() {
     });
   });
 
-  group('PermissionsPreferencesScreen Tests', () {
-    testWidgets('Renders theme options and updates themeModeNotifier', (
+  group('PermissionsPreferencesScreen & Dark Theme Tests', () {
+    testWidgets('StickerApp defaults to ThemeMode.dark', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(const StickerApp());
+      final MaterialApp app = tester.widget(find.byType(MaterialApp));
+      expect(app.themeMode, equals(ThemeMode.dark));
+    });
+
+    testWidgets('Renders permissions and system settings without theme selector', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
@@ -220,26 +243,11 @@ void main() {
       // Check Header
       expect(find.text('Permissions & Preferences'), findsOneWidget);
 
-      // Check Sections
-      expect(find.text('TEMA APLIKASI'), findsOneWidget);
-      expect(find.text('Mode Terang'), findsOneWidget);
-      expect(find.text('Mode Gelap'), findsOneWidget);
-      expect(find.text('Mengikuti Sistem'), findsOneWidget);
-
-      // Tap Mode Terang
-      await tester.tap(find.text('Mode Terang'));
-      await tester.pumpAndSettle();
-      expect(StickerApp.themeModeNotifier.value, equals(ThemeMode.light));
-
-      // Tap Mode Gelap
-      await tester.tap(find.text('Mode Gelap'));
-      await tester.pumpAndSettle();
-      expect(StickerApp.themeModeNotifier.value, equals(ThemeMode.dark));
-
-      // Tap Mengikuti Sistem
-      await tester.tap(find.text('Mengikuti Sistem'));
-      await tester.pumpAndSettle();
-      expect(StickerApp.themeModeNotifier.value, equals(ThemeMode.system));
+      // Verify theme options are completely removed
+      expect(find.text('TEMA APLIKASI'), findsNothing);
+      expect(find.text('Mode Terang'), findsNothing);
+      expect(find.text('Mode Gelap'), findsNothing);
+      expect(find.text('Mengikuti Sistem'), findsNothing);
 
       // Check Permissions Section
       expect(find.text('PERIZINAN APLIKASI'), findsOneWidget);

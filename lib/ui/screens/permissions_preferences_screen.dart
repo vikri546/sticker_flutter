@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:sticker_flutter/main.dart';
 import 'package:sticker_flutter/services/app_permission_service.dart';
 
-/// Screen displaying application permissions (gallery, camera, notification) and preferences (light/dark theme).
+/// Screen displaying application permissions (gallery, camera, notification).
 class PermissionsPreferencesScreen extends StatefulWidget {
   const PermissionsPreferencesScreen({super.key});
 
@@ -94,13 +94,7 @@ class _PermissionsPreferencesScreenState
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
         children: [
-          // SECTION 1: TEMA APLIKASI
-          _buildSectionTitle('TEMA APLIKASI'),
-          const SizedBox(height: 6),
-          _buildThemeCard(isDark),
-          const SizedBox(height: 24),
-
-          // SECTION 2: PERIZINAN APLIKASI
+          // SECTION 1: PERIZINAN APLIKASI
           Row(
             children: [
               _buildSectionTitle('PERIZINAN APLIKASI'),
@@ -138,97 +132,13 @@ class _PermissionsPreferencesScreenState
       padding: const EdgeInsets.only(left: 4, bottom: 4),
       child: Text(
         title,
-        style: const TextStyle(
-          fontSize: 11,
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 11.5,
           fontWeight: FontWeight.bold,
-          letterSpacing: 0.8,
-          color: Colors.grey,
+          letterSpacing: 0.9,
+          color: Colors.grey[400],
         ),
       ),
-    );
-  }
-
-  Widget _buildThemeCard(bool isDark) {
-    return ValueListenableBuilder<ThemeMode>(
-      valueListenable: StickerApp.themeModeNotifier,
-      builder: (context, currentMode, _) {
-        return Material(
-          color: isDark ? const Color(0xFF1E2B32) : Colors.white,
-          borderRadius: BorderRadius.circular(5),
-          clipBehavior: Clip.antiAlias,
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(5),
-              border: Border.all(
-                color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
-              ),
-            ),
-            child: Column(
-              children: [
-                _buildThemeOption(
-                  title: 'Mode Terang',
-                  subtitle: 'Tampilan cerah dengan latar putih bersih',
-                  icon: Icons.light_mode_rounded,
-                  iconColor: const Color(0xFFF09A06),
-                  isSelected: currentMode == ThemeMode.light,
-                  onTap: () => StickerApp.themeModeNotifier.value = ThemeMode.light,
-                ),
-                const Divider(height: 1, indent: 56),
-                _buildThemeOption(
-                  title: 'Mode Gelap',
-                  subtitle: 'Tampilan malam hemat daya & ramah mata',
-                  icon: Icons.dark_mode_rounded,
-                  iconColor: const Color(0xFF25D366),
-                  isSelected: currentMode == ThemeMode.dark,
-                  onTap: () => StickerApp.themeModeNotifier.value = ThemeMode.dark,
-                ),
-                const Divider(height: 1, indent: 56),
-                _buildThemeOption(
-                  title: 'Mengikuti Sistem',
-                  subtitle: 'Otomatis berganti mengikuti tema HP Android',
-                  icon: Icons.brightness_auto_rounded,
-                  iconColor: Colors.blueAccent,
-                  isSelected: currentMode == ThemeMode.system,
-                  onTap: () => StickerApp.themeModeNotifier.value = ThemeMode.system,
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildThemeOption({
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required Color iconColor,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: iconColor.withAlpha(25),
-          borderRadius: BorderRadius.circular(5),
-        ),
-        child: Icon(icon, color: iconColor, size: 22),
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-      ),
-      subtitle: Text(
-        subtitle,
-        style: const TextStyle(fontSize: 12, color: Colors.grey),
-      ),
-      trailing: isSelected
-          ? const Icon(Icons.check_circle_rounded, color: Color(0xFFF09A06), size: 22)
-          : const Icon(Icons.radio_button_unchecked_rounded, color: Colors.grey, size: 22),
     );
   }
 
