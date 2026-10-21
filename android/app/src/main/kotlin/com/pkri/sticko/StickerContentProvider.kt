@@ -1,4 +1,4 @@
-package com.example.sticker_flutter
+package com.pkri.sticko
 
 import android.content.ContentProvider
 import android.content.ContentValues
@@ -23,6 +23,7 @@ class StickerContentProvider : ContentProvider() {
         private const val METADATA_CODE_FOR_SINGLE_PACK = 2
         private const val STICKERS_CODE = 3
         private const val STICKERS_ASSET_CODE = 4
+        private const val STICKER_PACK_TRAY_ICON_CODE = 5
 
         // Exact column names required by WhatsApp
         const val STICKER_PACK_IDENTIFIER_IN_QUERY = "sticker_pack_identifier"
@@ -49,8 +50,11 @@ class StickerContentProvider : ContentProvider() {
         val authority = "${context?.packageName}.stickercontentprovider"
         uriMatcher.addURI(authority, "metadata", METADATA_CODE)
         uriMatcher.addURI(authority, "metadata/*", METADATA_CODE_FOR_SINGLE_PACK)
+        uriMatcher.addURI(authority, "stickers_metadata", METADATA_CODE)
+        uriMatcher.addURI(authority, "stickers_metadata/*", METADATA_CODE_FOR_SINGLE_PACK)
         uriMatcher.addURI(authority, "stickers/*", STICKERS_CODE)
         uriMatcher.addURI(authority, "stickers_asset/*/*", STICKERS_ASSET_CODE)
+        uriMatcher.addURI(authority, "stickers_asset/*", STICKER_PACK_TRAY_ICON_CODE)
         return true
     }
 
@@ -177,19 +181,30 @@ class StickerContentProvider : ContentProvider() {
 
     override fun openAssetFile(uri: Uri, mode: String): AssetFileDescriptor? {
         val match = uriMatcher.match(uri)
-        if (match == STICKERS_ASSET_CODE) {
+        if (match == STICKERS_ASSET_CODE || match == STICKER_PACK_TRAY_ICON_CODE) {
             val segments = uri.pathSegments
-            if (segments.size >= 3) {
-                val packIdentifier = segments[1]
-                val fileName = segments[2]
-                val file = File(context?.filesDir, "stickers/$packIdentifier/$fileName")
-                if (file.exists()) {
-                    val pfd = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
-                    return AssetFileDescriptor(pfd, 0, AssetFileDescriptor.UNKNOWN_LENGTH)
+            val file: File? = when {
+                segments.size >= 3 -> {
+                    // e.g. content://<authority>/stickers_asset/<packIdentifier>/<fileName>
+                    val packIdentifier = segments[1]
+                    val fileName = segments[2]
+                    File(context?.filesDir, "stickers/$packIdentifier/$fileName")
                 }
-                Log.e(TAG, "File not found: ${file.absolutePath}")
-                throw FileNotFoundException("File not found at ${file.absolutePath}")
+                segments.size == 2 -> {
+                    // Fallback: content://<authority>/stickers_asset/<fileName> or content://<authority>/<packIdentifier>/<fileName>
+                    val candidate1 = File(context?.filesDir, "stickers/${segments[0]}/${segments[1]}")
+                    val candidate2 = File(context?.filesDir, "stickers/${segments[1]}")
+                    if (candidate1.exists()) candidate1 else candidate2
+                }
+                else -> null
             }
+
+            if (file != null && file.exists()) {
+                val pfd = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
+                return AssetFileDescriptor(pfd, 0, AssetFileDescriptor.UNKNOWN_LENGTH)
+            }
+            Log.e(TAG, "File not found for URI: $uri, resolved: ${file?.absolutePath}")
+            throw FileNotFoundException("File not found at ${file?.absolutePath ?: uri.toString()}")
         }
         throw FileNotFoundException("Invalid URI or asset not found: $uri")
     }
@@ -202,9 +217,10 @@ class StickerContentProvider : ContentProvider() {
     override fun getType(uri: Uri): String? {
         val authority = "${context?.packageName}.stickercontentprovider"
         return when (uriMatcher.match(uri)) {
-            METADATA_CODE, METADATA_CODE_FOR_SINGLE_PACK -> "vnd.android.cursor.dir/vnd.$authority.metadata"
+            METADATA_CODE -> "vnd.android.cursor.dir/vnd.$authority.metadata"
+            METADATA_CODE_FOR_SINGLE_PACK -> "vnd.android.cursor.item/vnd.$authority.metadata"
             STICKERS_CODE -> "vnd.android.cursor.dir/vnd.$authority.stickers"
-            STICKERS_ASSET_CODE -> {
+            STICKERS_ASSET_CODE, STICKER_PACK_TRAY_ICON_CODE -> {
                 val last = uri.lastPathSegment ?: ""
                 if (last.endsWith(".png", ignoreCase = true)) "image/png" else "image/webp"
             }

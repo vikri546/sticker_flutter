@@ -1,4 +1,4 @@
-package com.example.sticker_flutter
+package com.pkri.sticko
 
 import android.app.Activity
 import android.content.Intent
@@ -14,7 +14,7 @@ class MainActivity : FlutterActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
-        private const val CHANNEL = "com.example.sticker_flutter/stickers"
+        private const val CHANNEL = "com.pkri.sticko/stickers"
         private const val ADD_PACK_REQUEST_CODE = 200
 
         private const val EXTRA_STICKER_PACK_ID = "sticker_pack_id"
@@ -134,11 +134,12 @@ class MainActivity : FlutterActivity() {
 
     private fun launchAddPackIntent(identifier: String, name: String, targetPackage: String) {
         val authority = "${context.packageName}.stickercontentprovider"
-        val intent = Intent("com.whatsapp.intent.action.ENABLE_ADD_PACK").apply {
+        val intent = Intent("com.whatsapp.intent.action.ENABLE_STICKER_PACK").apply {
             setPackage(targetPackage)
             putExtra(EXTRA_STICKER_PACK_ID, identifier)
             putExtra(EXTRA_STICKER_PACK_AUTHORITY, authority)
             putExtra(EXTRA_STICKER_PACK_NAME, name)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
 
         try {

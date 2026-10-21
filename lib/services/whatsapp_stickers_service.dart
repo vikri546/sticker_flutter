@@ -108,7 +108,7 @@ class StickerPack {
 /// Service that communicates directly with Android native WhatsApp Sticker Protocol via MethodChannel.
 class WhatsAppStickersService {
   static const MethodChannel _channel =
-      MethodChannel('com.example.sticker_flutter/stickers');
+      MethodChannel('com.pkri.sticko/stickers');
 
   /// Get the directory path where sticker packs and files must be saved.
   static Future<String> getStickersDirectory() async {
@@ -122,12 +122,16 @@ class WhatsAppStickersService {
 
   /// Check whether standard WhatsApp and/or WhatsApp Business are installed on the device.
   static Future<Map<String, bool>> checkWhatsAppInstalled() async {
-    final Map<dynamic, dynamic>? result =
-        await _channel.invokeMethod<Map<dynamic, dynamic>>('checkWhatsAppInstalled');
-    return {
-      'whatsapp': result?['whatsapp'] == true,
-      'whatsapp_business': result?['whatsapp_business'] == true,
-    };
+    try {
+      final Map<dynamic, dynamic>? result =
+          await _channel.invokeMethod<Map<dynamic, dynamic>>('checkWhatsAppInstalled');
+      return {
+        'whatsapp': result?['whatsapp'] == true,
+        'whatsapp_business': result?['whatsapp_business'] == true,
+      };
+    } catch (_) {
+      return {'whatsapp': false, 'whatsapp_business': false};
+    }
   }
 
   /// Check if a specific sticker pack is already added/whitelisted in WhatsApp.

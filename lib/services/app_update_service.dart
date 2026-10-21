@@ -37,7 +37,7 @@ class AppUpdateInfo {
 class AppUpdateService {
   static const String defaultCurrentVersion = '1.0.0';
   static const String defaultStoreUrl =
-      'https://play.google.com/store/apps/details?id=com.example.sticker_flutter';
+      'https://play.google.com/store/apps/details?id=com.pkri.sticko';
 
   /// Compare two semantic version strings (e.g., '1.0.0' vs '1.1.0').
   /// Returns `true` if [current] is strictly older than [target].

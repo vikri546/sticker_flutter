@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:sticker_flutter/services/app_permission_service.dart';
 import 'package:sticker_flutter/services/sticker_image_processor.dart';
 import 'package:sticker_flutter/services/sticker_pack_manager.dart';
 
@@ -18,6 +19,7 @@ class AddStickerSheet extends StatefulWidget {
 }
 
 class _AddStickerSheetState extends State<AddStickerSheet> {
+  final _permissionService = AppPermissionService();
   Uint8List? _selectedImageBytes;
   final List<String> _selectedEmojis = ['😀'];
   bool _isProcessing = false;
@@ -27,12 +29,34 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
   ];
 
   Future<void> _pickImage(ImageSource source) async {
-    final xFile = await StickerImageProcessor.pickImage(source: source);
-    if (xFile != null) {
-      final bytes = await xFile.readAsBytes();
-      setState(() {
-        _selectedImageBytes = bytes;
-      });
+    // 1. Enforce runtime permission checks with rationale
+    final bool hasPermission;
+    if (source == ImageSource.camera) {
+      hasPermission = await _permissionService.requestCameraPermission(context);
+    } else {
+      hasPermission = await _permissionService.requestGalleryPermission(context);
+    }
+
+    if (!hasPermission || !mounted) return;
+
+    // 2. Safely launch picker
+    try {
+      final xFile = await StickerImageProcessor.pickImage(source: source);
+      if (xFile != null && mounted) {
+        final bytes = await xFile.readAsBytes();
+        setState(() {
+          _selectedImageBytes = bytes;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Tidak dapat mengambil gambar: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
     }
   }
 

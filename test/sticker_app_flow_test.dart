@@ -10,7 +10,7 @@ import 'package:sticker_flutter/ui/widgets/create_pack_dialog.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late Directory tempDir;
-  const channel = MethodChannel('com.example.sticker_flutter/stickers');
+  const channel = MethodChannel('com.pkri.sticko/stickers');
 
   setUp(() async {
     tempDir = await Directory.systemTemp.createTemp('flow_test_');
@@ -49,9 +49,10 @@ void main() {
     await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
     await tester.pump();
 
-    expect(find.text('Sticker Maker'), findsOneWidget);
+    expect(find.text('Sticko'), findsOneWidget);
     expect(find.text('Belum Ada Paket Stiker'), findsOneWidget);
-    expect(find.text('Paket Baru'), findsOneWidget);
+    expect(find.byKey(const Key('add_pack_fab')), findsOneWidget);
+    expect(find.byIcon(Icons.add_rounded), findsWidgets);
   });
 
   testWidgets('CreatePackDialog validates input and creates pack', (WidgetTester tester) async {
