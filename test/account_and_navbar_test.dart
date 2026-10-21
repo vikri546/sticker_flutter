@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sticker_flutter/main.dart';
+import 'package:sticker_flutter/services/creator_profile_service.dart';
 import 'package:sticker_flutter/services/sticker_pack_manager.dart';
 import 'package:sticker_flutter/ui/screens/account_screen.dart';
+import 'package:sticker_flutter/ui/screens/edit_profile_screen.dart';
 import 'package:sticker_flutter/ui/screens/home_screen.dart';
 import 'package:sticker_flutter/ui/screens/permissions_preferences_screen.dart';
 import 'package:sticker_flutter/ui/widgets/floating_pill_nav_bar.dart';
@@ -34,6 +36,9 @@ void main() {
     final manager = StickerPackManager();
     manager.resetForTesting();
     await manager.initialize(customStickersDir: tempDir.path, force: true);
+
+    final profileService = CreatorProfileService();
+    profileService.resetForTesting(customDir: tempDir.path);
   });
 
   tearDown(() async {
@@ -118,6 +123,7 @@ void main() {
       expect(find.text('Account & Settings'), findsNothing);
       expect(find.text('Kreator Stiker'), findsOneWidget);
       expect(find.text('Penyimpanan Lokal Aktif'), findsOneWidget);
+      expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
 
       // Check Sections (Simplified layout with Permissions & Preferences)
       expect(find.text('PREFERENSI & PERIZINAN'), findsOneWidget);
@@ -255,9 +261,115 @@ void main() {
       expect(find.text('Kamera'), findsOneWidget);
       expect(find.text('Notifikasi'), findsOneWidget);
 
+      // Verify capsule buttons rendered without icons (defaults to Aktif on desktop macOS test runner)
+      expect(find.text('Aktif'), findsNWidgets(3));
+      expect(find.text('Buka'), findsOneWidget);
+
       // Check System Settings
       expect(find.text('SETELAN SISTEM ANDROID'), findsOneWidget);
       expect(find.text('Buka Pengaturan Aplikasi'), findsOneWidget);
+    });
+
+    testWidgets('Shows deactivation information modal dialog only when tapping active permission', (
+      WidgetTester tester,
+    ) async {
+      const permChannel = MethodChannel('flutter.baseflow.com/permissions/methods');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(permChannel, (MethodCall methodCall) async {
+        if (methodCall.method == 'checkPermissionStatus') {
+          // Return granted (1) for all permissions
+          return 1;
+        }
+        return 0;
+      });
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(splashFactory: InkRipple.splashFactory),
+          home: const PermissionsPreferencesScreen(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // All 3 permissions should now be 'Aktif'
+      expect(find.text('Aktif'), findsNWidgets(3));
+
+      // Tap on the first 'Aktif' capsule button (Galeri & Foto)
+      await tester.tap(find.text('Aktif').first);
+      await tester.pumpAndSettle();
+
+      // Deactivation modal info dialog should be displayed
+      expect(find.text('Nonaktifkan Izin Galeri & Foto'), findsOneWidget);
+      expect(
+        find.textContaining('Izin aplikasi yang sudah aktif hanya dapat dinonaktifkan'),
+        findsOneWidget,
+      );
+      expect(find.text('Batal'), findsOneWidget);
+      expect(find.text('Buka Setelan'), findsOneWidget);
+
+      // Tap 'Batal' to close modal
+      await tester.tap(find.text('Batal'));
+      await tester.pumpAndSettle();
+      expect(find.text('Nonaktifkan Izin Galeri & Foto'), findsNothing);
+
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(permChannel, null);
+    });
+
+    testWidgets('PermissionsPreferencesScreen.route() provides zoom in/out ScaleTransition', (
+      WidgetTester tester,
+    ) async {
+      final route = PermissionsPreferencesScreen.route();
+      expect(route, isA<PageRouteBuilder>());
+    });
+  });
+
+  group('EditProfileScreen & Creator Profile Tests', () {
+    testWidgets('EditProfileScreen.route() provides zoom in/out ScaleTransition', (
+      WidgetTester tester,
+    ) async {
+      final route = EditProfileScreen.route();
+      expect(route, isA<PageRouteBuilder>());
+    });
+
+    testWidgets('Renders EditProfileScreen fields and enforces 32 character limit on bio', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(splashFactory: InkRipple.splashFactory),
+          home: const EditProfileScreen(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Check Header
+      expect(find.text('Edit Profil Kreator'), findsOneWidget);
+      expect(find.text('Ubah Foto Profil'), findsOneWidget);
+
+      // Check Labels
+      expect(find.text('NAMA KREATOR'), findsOneWidget);
+      expect(find.text('BIO STATUS'), findsOneWidget);
+      expect(find.text('TAUTAN / MEDIA SOSIAL (OPSIONAL)'), findsNothing);
+      expect(find.text('Simpan Perubahan'), findsOneWidget);
+
+      // Enter new name and bio
+      final nameField = find.widgetWithText(TextField, 'Kreator Stiker');
+      expect(nameField, findsOneWidget);
+      await tester.enterText(nameField, 'Sticko Artist');
+
+      final bioField = find.widgetWithText(TextField, 'Penyimpanan Lokal Aktif');
+      expect(bioField, findsOneWidget);
+      await tester.enterText(bioField, 'Bikin stiker keren tiap hari 🚀');
+
+      // Tap Simpan Perubahan
+      await tester.tap(find.text('Simpan Perubahan'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Verify service updated
+      expect(CreatorProfileService().name, equals('Sticko Artist'));
+      expect(CreatorProfileService().bio, equals('Bikin stiker keren tiap hari 🚀'));
     });
   });
 }

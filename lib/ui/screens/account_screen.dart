@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sticker_flutter/services/app_update_service.dart';
+import 'package:sticker_flutter/services/creator_profile_service.dart';
 import 'package:sticker_flutter/services/sticker_pack_manager.dart';
+import 'package:sticker_flutter/ui/screens/edit_profile_screen.dart';
 import 'package:sticker_flutter/ui/screens/permissions_preferences_screen.dart';
 
 /// Screen displaying user account details, system permissions access, storage management, and app updates.
@@ -22,6 +24,7 @@ class AccountScreen extends StatefulWidget {
 
 class _AccountScreenState extends State<AccountScreen> {
   final _manager = StickerPackManager();
+  final _profileService = CreatorProfileService();
   bool _isCheckingUpdate = false;
   String _cacheSizeText = 'Menghitung...';
 
@@ -29,6 +32,7 @@ class _AccountScreenState extends State<AccountScreen> {
   void initState() {
     super.initState();
     _calculateCacheSize();
+    _profileService.loadProfile();
   }
 
   Future<void> _calculateCacheSize() async {
@@ -215,7 +219,7 @@ class _AccountScreenState extends State<AccountScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return ListenableBuilder(
-      listenable: _manager,
+      listenable: Listenable.merge([_manager, _profileService]),
       builder: (context, _) {
         final totalPacks = _manager.packs.length;
         final totalStickers =
@@ -282,9 +286,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     subtitle: 'Izin akses galeri foto, kamera, & notifikasi',
                     onTap: () {
                       Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const PermissionsPreferencesScreen(),
-                        ),
+                        PermissionsPreferencesScreen.route(),
                       );
                     },
                   ),
@@ -361,12 +363,16 @@ class _AccountScreenState extends State<AccountScreen> {
     required int totalStickers,
     required int installedPacks,
   }) {
+    final hasCustomAvatar = _profileService.avatarPath != null &&
+        File(_profileService.avatarPath!).existsSync();
+
     return _LiquidGlassCard(
       borderRadius: 5,
       padding: const EdgeInsets.all(18),
       child: Column(
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
                 width: 58,
@@ -386,20 +392,27 @@ class _AccountScreenState extends State<AccountScreen> {
                   ],
                 ),
                 child: ClipOval(
-                  child: Image.asset(
-                    'lib/images/sticko-app.png',
-                    width: 58,
-                    height: 58,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: const Color(0xFFF09A06),
-                      child: const Icon(
-                        Icons.sentiment_very_satisfied_rounded,
-                        color: Colors.white,
-                        size: 32,
-                      ),
-                    ),
-                  ),
+                  child: hasCustomAvatar
+                      ? Image.file(
+                          File(_profileService.avatarPath!),
+                          width: 58,
+                          height: 58,
+                          fit: BoxFit.cover,
+                        )
+                      : Image.asset(
+                          'lib/images/sticko-app.png',
+                          width: 58,
+                          height: 58,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            color: const Color(0xFFF09A06),
+                            child: const Icon(
+                              Icons.sentiment_very_satisfied_rounded,
+                              color: Colors.white,
+                              size: 32,
+                            ),
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(width: 14),
@@ -409,12 +422,16 @@ class _AccountScreenState extends State<AccountScreen> {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          'Kreator Stiker',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 17,
-                            color: Colors.white,
+                        Flexible(
+                          child: Text(
+                            _profileService.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 17,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 6),
@@ -423,7 +440,9 @@ class _AccountScreenState extends State<AccountScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Penyimpanan Lokal Aktif',
+                      _profileService.bio,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
                         color: isDark ? Colors.grey[300] : Colors.grey[700],
@@ -431,6 +450,22 @@ class _AccountScreenState extends State<AccountScreen> {
                     ),
                   ],
                 ),
+              ),
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                splashRadius: 22,
+                icon: const Icon(
+                  Icons.edit_outlined,
+                  color: Colors.white70,
+                  size: 20,
+                ),
+                tooltip: 'Edit Profil Kreator',
+                onPressed: () {
+                  Navigator.of(context).push(
+                    EditProfileScreen.route(),
+                  );
+                },
               ),
             ],
           ),
