@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sticker_flutter/services/sticker_pack_manager.dart';
 import 'package:sticker_flutter/services/whatsapp_stickers_service.dart';
 import 'package:sticker_flutter/ui/widgets/add_sticker_sheet.dart';
+import 'package:sticker_flutter/ui/widgets/app_notification.dart';
 import 'package:sticker_flutter/ui/widgets/sticker_grid_tile.dart';
 
 /// Screen displaying the details of a sticker pack, its grid of stickers, and the WhatsApp export button.
@@ -26,11 +27,10 @@ class _PackDetailScreenState extends State<PackDetailScreen> {
     if (pack == null) return;
 
     if (pack.stickers.length >= 30) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Paket ini sudah penuh (maksimal 30 stiker).'),
-          backgroundColor: Colors.orange,
-        ),
+      AppNotification.show(
+        context,
+        message: 'Paket ini sudah penuh (maksimal 30 stiker).',
+        isSuccess: false,
       );
       return;
     }
@@ -81,27 +81,24 @@ class _PackDetailScreenState extends State<PackDetailScreen> {
           ),
         );
       } else if (status == 'cancelled') {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Penambahan stiker dibatalkan oleh pengguna.'),
-            duration: Duration(seconds: 2),
-          ),
+        AppNotification.show(
+          context,
+          message: 'Penambahan stiker dibatalkan oleh pengguna.',
+          isSuccess: false,
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(message.isNotEmpty ? message : 'Gagal menambahkan stiker ke WhatsApp'),
-            backgroundColor: Colors.redAccent,
-          ),
+        AppNotification.show(
+          context,
+          message: message.isNotEmpty ? message : 'Gagal menambahkan stiker ke WhatsApp',
+          isSuccess: false,
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Terjadi kesalahan: $e'),
-            backgroundColor: Colors.redAccent,
-          ),
+        AppNotification.show(
+          context,
+          message: 'Terjadi kesalahan: $e',
+          isSuccess: false,
         );
       }
     } finally {

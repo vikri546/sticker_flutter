@@ -35,10 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _openCreatePackDialog() async {
-    final newPack = await showDialog<StickerPack>(
-      context: context,
-      builder: (_) => const CreatePackDialog(),
-    );
+    final newPack = await CreatePackDialog.show(context);
 
     if (newPack != null && mounted) {
       Navigator.of(context).push(

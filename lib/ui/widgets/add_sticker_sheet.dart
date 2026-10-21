@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:sticker_flutter/services/app_permission_service.dart';
 import 'package:sticker_flutter/services/sticker_image_processor.dart';
 import 'package:sticker_flutter/services/sticker_pack_manager.dart';
+import 'package:sticker_flutter/ui/widgets/app_notification.dart';
 
 /// Modal bottom sheet to pick, preview, tag with emojis, and add a new sticker.
 class AddStickerSheet extends StatefulWidget {
@@ -50,11 +51,10 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Tidak dapat mengambil gambar: $e'),
-            backgroundColor: Colors.redAccent,
-          ),
+        AppNotification.show(
+          context,
+          message: 'Tidak dapat mengambil gambar: $e',
+          isSuccess: false,
         );
       }
     }
@@ -89,20 +89,18 @@ class _AddStickerSheetState extends State<AddStickerSheet> {
 
       if (mounted) {
         Navigator.of(context).pop(true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Stiker berhasil dibuat dan ditambahkan ke paket!'),
-            backgroundColor: Color(0xFF128C7E),
-          ),
+        AppNotification.show(
+          context,
+          message: 'Stiker berhasil dibuat dan ditambahkan ke paket!',
+          isSuccess: true,
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal membuat stiker: $e'),
-            backgroundColor: Colors.redAccent,
-          ),
+        AppNotification.show(
+          context,
+          message: 'Gagal membuat stiker: $e',
+          isSuccess: false,
         );
       }
     } finally {

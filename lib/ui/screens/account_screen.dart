@@ -8,6 +8,7 @@ import 'package:sticker_flutter/services/creator_profile_service.dart';
 import 'package:sticker_flutter/services/sticker_pack_manager.dart';
 import 'package:sticker_flutter/ui/screens/edit_profile_screen.dart';
 import 'package:sticker_flutter/ui/screens/permissions_preferences_screen.dart';
+import 'package:sticker_flutter/ui/widgets/app_notification.dart';
 
 /// Screen displaying user account details, system permissions access, storage management, and app updates.
 class AccountScreen extends StatefulWidget {
@@ -73,20 +74,18 @@ class _AccountScreenState extends State<AccountScreen> {
       }
       await _calculateCacheSize();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Cache sementara berhasil dibersihkan!'),
-            backgroundColor: Color(0xFF128C7E),
-          ),
+        AppNotification.show(
+          context,
+          message: 'Cache sementara berhasil dibersihkan!',
+          isSuccess: true,
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal membersihkan cache: $e'),
-            backgroundColor: Colors.redAccent,
-          ),
+        AppNotification.show(
+          context,
+          message: 'Gagal membersihkan cache: $e',
+          isSuccess: false,
         );
       }
     }

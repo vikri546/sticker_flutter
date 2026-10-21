@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sticker_flutter/services/creator_profile_service.dart';
+import 'package:sticker_flutter/ui/widgets/app_notification.dart';
 
 /// Screen allowing the user to customize their creator profile:
 /// avatar image, creator name, short bio (up to 32 characters), and optional website.
@@ -92,11 +93,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     } catch (e) {
       debugPrint('Error picking profile image: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal memilih gambar: $e'),
-            backgroundColor: Colors.redAccent,
-          ),
+        AppNotification.show(
+          context,
+          message: 'Gagal memilih gambar: $e',
+          isSuccess: false,
         );
       }
     }
@@ -179,11 +179,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _saveProfile() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Nama kreator tidak boleh kosong'),
-          backgroundColor: Colors.redAccent,
-        ),
+      AppNotification.show(
+        context,
+        message: 'Nama kreator tidak boleh kosong',
+        isSuccess: false,
       );
       return;
     }
@@ -197,16 +196,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     if (mounted) {
       setState(() => _isSaving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Profil kreator berhasil diperbarui',
-            style: GoogleFonts.plusJakartaSans(),
-          ),
-          backgroundColor: const Color(0xFF25D366),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 2),
-        ),
+      AppNotification.show(
+        context,
+        message: 'Profil kreator berhasil diperbarui',
+        isSuccess: true,
       );
       if (Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
