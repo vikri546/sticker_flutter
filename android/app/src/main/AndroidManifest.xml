@@ -67,8 +67,21 @@
     <queries>
         <package android:name="com.whatsapp" />
         <package android:name="com.whatsapp.w4b" />
+        <package android:name="com.gbwhatsapp" />
+        <package android:name="com.whatsapp.plus" />
+        <package android:name="com.fmwhatsapp" />
+        <package android:name="com.yowhatsapp" />
+        <package android:name="com.aero" />
+        <package android:name="com.ogwhatsapp" />
         <provider android:authorities="com.whatsapp.provider.sticker_whitelist_check" />
         <provider android:authorities="com.whatsapp.w4b.provider.sticker_whitelist_check" />
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="whatsapp" />
+        </intent>
+        <intent>
+            <action android:name="com.whatsapp.intent.action.ENABLE_STICKER_PACK" />
+        </intent>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>

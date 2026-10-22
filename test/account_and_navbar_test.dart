@@ -125,9 +125,10 @@ void main() {
       expect(find.text('Penyimpanan Lokal Aktif'), findsOneWidget);
       expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
 
-      // Check Sections (Simplified layout with Permissions & Preferences)
-      expect(find.text('PREFERENSI & PERIZINAN'), findsOneWidget);
-      expect(find.text('Permissions & Preferences'), findsOneWidget);
+      // Check Sections (Simplified layout with Pengaturan Sistem)
+      expect(find.text('PENGATURAN SISTEM'), findsOneWidget);
+      expect(find.text('Perizinan & Preferensi'), findsOneWidget);
+      expect(find.text('Integrasi WhatsApp'), findsOneWidget);
       expect(find.text('PENGATURAN LAINNYA'), findsOneWidget);
 
       // Open Tutorial Dialog
@@ -247,7 +248,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Check Header
-      expect(find.text('Permissions & Preferences'), findsOneWidget);
+      expect(find.text('Perizinan & Preferensi'), findsOneWidget);
 
       // Verify theme options are completely removed
       expect(find.text('TEMA APLIKASI'), findsNothing);

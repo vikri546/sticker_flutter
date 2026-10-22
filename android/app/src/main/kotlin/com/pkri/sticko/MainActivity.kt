@@ -56,6 +56,78 @@ class MainActivity : FlutterActivity() {
                     )
                 }
 
+                "checkDetailedWhatsAppStatus" -> {
+                    val isWaInstalled = isPackageInstalled(WHATSAPP_PACKAGE)
+                    val waVersion = getPackageVersion(WHATSAPP_PACKAGE)
+                    val isW4bInstalled = isPackageInstalled(WHATSAPP_BUSINESS_PACKAGE)
+                    val w4bVersion = getPackageVersion(WHATSAPP_BUSINESS_PACKAGE)
+
+                    val knownClones = listOf(
+                        Pair("com.gbwhatsapp", "GBWhatsApp"),
+                        Pair("com.whatsapp.plus", "WhatsApp Plus"),
+                        Pair("com.fmwhatsapp", "FMWhatsApp"),
+                        Pair("com.yowhatsapp", "YoWhatsApp"),
+                        Pair("com.aero", "Aero WhatsApp"),
+                        Pair("com.ogwhatsapp", "OGWhatsApp")
+                    )
+
+                    val detectedClones = mutableListOf<Map<String, String>>()
+                    for ((pkg, name) in knownClones) {
+                        if (isPackageInstalled(pkg)) {
+                            detectedClones.add(
+                                mapOf(
+                                    "packageName" to pkg,
+                                    "name" to name,
+                                    "version" to (getPackageVersion(pkg) ?: "")
+                                )
+                            )
+                        }
+                    }
+
+                    result.success(
+                        mapOf(
+                            "whatsapp" to isWaInstalled,
+                            "whatsappVersion" to (waVersion ?: ""),
+                            "whatsappBusiness" to isW4bInstalled,
+                            "whatsappBusinessVersion" to (w4bVersion ?: ""),
+                            "clones" to detectedClones
+                        )
+                    )
+                }
+
+                "openWhatsAppApp" -> {
+                    val pkg = call.argument<String>("packageName") ?: WHATSAPP_PACKAGE
+                    val launchIntent = packageManager.getLaunchIntentForPackage(pkg)
+                    if (launchIntent != null) {
+                        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        startActivity(launchIntent)
+                        result.success(true)
+                    } else {
+                        result.success(false)
+                    }
+                }
+
+                "openPlayStore" -> {
+                    val pkg = call.argument<String>("packageName") ?: WHATSAPP_PACKAGE
+                    try {
+                        val marketIntent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$pkg")).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        startActivity(marketIntent)
+                        result.success(true)
+                    } catch (e: Exception) {
+                        try {
+                            val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$pkg")).apply {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            startActivity(webIntent)
+                            result.success(true)
+                        } catch (e2: Exception) {
+                            result.error("PLAYSTORE_ERROR", e2.localizedMessage, null)
+                        }
+                    }
+                }
+
                 "isStickerPackAdded" -> {
                     val identifier = call.argument<String>("identifier")
                     val isBusiness = call.argument<Boolean>("isBusiness") ?: false
@@ -104,6 +176,15 @@ class MainActivity : FlutterActivity() {
             true
         } catch (e: PackageManager.NameNotFoundException) {
             false
+        }
+    }
+
+    private fun getPackageVersion(packageName: String): String? {
+        return try {
+            val pInfo = packageManager.getPackageInfo(packageName, 0)
+            pInfo.versionName
+        } catch (e: PackageManager.NameNotFoundException) {
+            null
         }
     }
 

@@ -8,6 +8,7 @@ import 'package:sticker_flutter/services/creator_profile_service.dart';
 import 'package:sticker_flutter/services/sticker_pack_manager.dart';
 import 'package:sticker_flutter/ui/screens/edit_profile_screen.dart';
 import 'package:sticker_flutter/ui/screens/permissions_preferences_screen.dart';
+import 'package:sticker_flutter/ui/screens/whatsapp_connection_screen.dart';
 import 'package:sticker_flutter/ui/widgets/app_notification.dart';
 
 /// Screen displaying user account details, system permissions access, storage management, and app updates.
@@ -275,17 +276,32 @@ class _AccountScreenState extends State<AccountScreen> {
                     ),
               const SizedBox(height: 20),
 
-              // 2. Section: Permissions & Preferences (New Simplified Core Feature)
-              _buildSectionHeader('PREFERENSI & PERIZINAN'),
+              // 2. Section: Pengaturan Sistem (New Simplified Core Feature)
+              _buildSectionHeader('PENGATURAN SISTEM'),
               _buildSettingsCard(
                 isDark: isDark,
                 children: [
                   _SettingsListTile(
-                    title: 'Permissions & Preferences',
+                    title: 'Perizinan & Preferensi',
                     subtitle: 'Izin akses galeri foto, kamera, & notifikasi',
                     onTap: () {
                       Navigator.of(context).push(
                         PermissionsPreferencesScreen.route(),
+                      );
+                    },
+                  ),
+                  Divider(
+                    height: 1,
+                    indent: 20,
+                    endIndent: 20,
+                    color: isDark ? const Color(0x24FFFFFF) : const Color(0x1F000000),
+                  ),
+                  _SettingsListTile(
+                    title: 'Integrasi WhatsApp',
+                    subtitle: 'Status kaitan WhatsApp resmi, Business, & duplikat',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        WhatsAppConnectionScreen.route(),
                       );
                     },
                   ),

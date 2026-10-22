@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Model representing a single sticker item in a pack.
 class StickerItem {
@@ -26,6 +27,58 @@ class StickerItem {
           ['😀'],
     );
   }
+}
+
+/// Represents a detected WhatsApp clone / duplicate / mod app.
+class WhatsAppCloneItem {
+  final String packageName;
+  final String name;
+  final String version;
+
+  const WhatsAppCloneItem({
+    required this.packageName,
+    required this.name,
+    this.version = '',
+  });
+
+  Map<String, dynamic> toJson() => {
+        'packageName': packageName,
+        'name': name,
+        'version': version,
+      };
+
+  factory WhatsAppCloneItem.fromJson(Map<String, dynamic> json) {
+    return WhatsAppCloneItem(
+      packageName: json['packageName'] as String? ?? '',
+      name: json['name'] as String? ?? 'WhatsApp Duplikat',
+      version: json['version'] as String? ?? '',
+    );
+  }
+}
+
+/// Comprehensive status of all detected WhatsApp applications on the device.
+class WhatsAppDetailedStatus {
+  final bool isWhatsAppInstalled;
+  final String whatsAppVersion;
+  final bool isBusinessInstalled;
+  final String businessVersion;
+  final List<WhatsAppCloneItem> clones;
+
+  const WhatsAppDetailedStatus({
+    this.isWhatsAppInstalled = false,
+    this.whatsAppVersion = '',
+    this.isBusinessInstalled = false,
+    this.businessVersion = '',
+    this.clones = const [],
+  });
+
+  bool get hasAnyWhatsAppInstalled =>
+      isWhatsAppInstalled || isBusinessInstalled || clones.isNotEmpty;
+
+  int get totalInstalledCount =>
+      (isWhatsAppInstalled ? 1 : 0) +
+      (isBusinessInstalled ? 1 : 0) +
+      clones.length;
 }
 
 /// Model representing a WhatsApp sticker pack.
@@ -132,6 +185,76 @@ class WhatsAppStickersService {
     } catch (_) {
       return {'whatsapp': false, 'whatsapp_business': false};
     }
+  }
+
+  /// Check detailed installation status including versions and duplicate/mod clones.
+  static Future<WhatsAppDetailedStatus> checkDetailedWhatsAppStatus() async {
+    try {
+      final Map<dynamic, dynamic>? result = await _channel
+          .invokeMethod<Map<dynamic, dynamic>>('checkDetailedWhatsAppStatus');
+
+      if (result == null) {
+        return const WhatsAppDetailedStatus();
+      }
+
+      final rawClones = result['clones'] as List<dynamic>? ?? [];
+      final clones = rawClones
+          .whereType<Map<dynamic, dynamic>>()
+          .map((m) => WhatsAppCloneItem.fromJson(Map<String, dynamic>.from(m)))
+          .toList();
+
+      return WhatsAppDetailedStatus(
+        isWhatsAppInstalled: result['whatsapp'] == true,
+        whatsAppVersion: result['whatsappVersion'] as String? ?? '',
+        isBusinessInstalled: result['whatsappBusiness'] == true,
+        businessVersion: result['whatsappBusinessVersion'] as String? ?? '',
+        clones: clones,
+      );
+    } catch (_) {
+      return const WhatsAppDetailedStatus();
+    }
+  }
+
+  /// Launch application in Google Play Store for downloading/installing.
+  static Future<bool> openPlayStore(String packageName) async {
+    try {
+      final bool? res = await _channel.invokeMethod<bool>(
+        'openPlayStore',
+        {'packageName': packageName},
+      );
+      if (res == true) return true;
+    } catch (_) {}
+
+    try {
+      final marketUri = Uri.parse('market://details?id=$packageName');
+      final webUri =
+          Uri.parse('https://play.google.com/store/apps/details?id=$packageName');
+      if (await canLaunchUrl(marketUri)) {
+        return await launchUrl(marketUri, mode: LaunchMode.externalApplication);
+      } else if (await canLaunchUrl(webUri)) {
+        return await launchUrl(webUri, mode: LaunchMode.externalApplication);
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  /// Open installed WhatsApp or WhatsApp Business / Clone app.
+  static Future<bool> openWhatsAppApp([String packageName = 'com.whatsapp']) async {
+    try {
+      final bool? res = await _channel.invokeMethod<bool>(
+        'openWhatsAppApp',
+        {'packageName': packageName},
+      );
+      if (res == true) return true;
+    } catch (_) {}
+
+    try {
+      final uri = Uri.parse('whatsapp://');
+      if (await canLaunchUrl(uri)) {
+        return await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (_) {}
+    return false;
   }
 
   /// Check if a specific sticker pack is already added/whitelisted in WhatsApp.

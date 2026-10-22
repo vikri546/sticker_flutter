@@ -168,7 +168,7 @@ class _PermissionsPreferencesScreenState
         surfaceTintColor: Colors.transparent,
         centerTitle: true,
         title: Text(
-          'Permissions & Preferences',
+          'Perizinan & Preferensi',
           style: GoogleFonts.plusJakartaSans(
             fontWeight: FontWeight.bold,
             fontSize: 18,
@@ -232,10 +232,6 @@ class _PermissionsPreferencesScreenState
                 _buildSectionTitle('SETELAN SISTEM ANDROID'),
                 const SizedBox(height: 6),
                 _buildSystemSettingsCard(isDark),
-                const SizedBox(height: 24),
-
-                // INFO PRIVASI
-                _buildPrivacyNote(isDark),
               ],
             ),
           ),
@@ -456,21 +452,6 @@ class _PermissionsPreferencesScreenState
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildPrivacyNote(bool isDark) {
-    return _LiquidGlassCard(
-      borderRadius: 5,
-      padding: const EdgeInsets.all(14),
-      child: Text(
-        'Privasi Terjaga: Seluruh proses foto, kamera, dan stiker berjalan 100% lokal di smartphone kamu. Tidak ada foto yang dikirim ke server luar.',
-        style: GoogleFonts.plusJakartaSans(
-          fontSize: 12,
-          color: isDark ? Colors.grey[300] : Colors.grey[700],
-          height: 1.4,
-        ),
       ),
     );
   }
