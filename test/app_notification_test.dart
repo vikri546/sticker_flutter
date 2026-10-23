@@ -8,8 +8,9 @@ void main() {
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
+        MaterialApp(
+          theme: ThemeData(splashFactory: InkRipple.splashFactory),
+          home: const Scaffold(
             body: Center(
               child: NotificationIconButton(
                 message: 'Operasi berhasil!',
@@ -47,8 +48,9 @@ void main() {
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
+        MaterialApp(
+          theme: ThemeData(splashFactory: InkRipple.splashFactory),
+          home: const Scaffold(
             body: Center(
               child: NotificationIconButton(
                 message: 'Nama tidak boleh kosong',
@@ -86,6 +88,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         MaterialApp(
+          theme: ThemeData(splashFactory: InkRipple.splashFactory),
           home: Scaffold(
             body: Builder(
               builder: (ctx) => Center(

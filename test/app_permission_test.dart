@@ -110,6 +110,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          theme: ThemeData(splashFactory: InkRipple.splashFactory),
           home: Scaffold(
             body: Builder(
               builder: (context) => ElevatedButton(
@@ -161,6 +162,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          theme: ThemeData(splashFactory: InkRipple.splashFactory),
           home: Scaffold(
             body: PermissionPermanentlyDeniedDialog(
               title: 'Izin Kamera Diblokir',
@@ -191,6 +193,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         MaterialApp(
+          theme: ThemeData(splashFactory: InkRipple.splashFactory),
           home: SystemStatusScreen(
             permissionService: FakePermissionService(),
             whatsAppChecker: () async => {'whatsapp': true, 'whatsapp_business': false},

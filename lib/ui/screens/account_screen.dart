@@ -7,8 +7,10 @@ import 'package:sticker_flutter/services/app_update_service.dart';
 import 'package:sticker_flutter/services/creator_profile_service.dart';
 import 'package:sticker_flutter/services/sticker_pack_manager.dart';
 import 'package:sticker_flutter/ui/screens/edit_profile_screen.dart';
+import 'package:sticker_flutter/ui/screens/creator_collection_screen.dart';
 import 'package:sticker_flutter/ui/screens/permissions_preferences_screen.dart';
 import 'package:sticker_flutter/ui/screens/whatsapp_connection_screen.dart';
+import 'package:sticker_flutter/ui/screens/cloud_backup_screen.dart';
 import 'package:sticker_flutter/ui/widgets/app_notification.dart';
 
 /// Screen displaying user account details, system permissions access, storage management, and app updates.
@@ -237,7 +239,7 @@ class _AccountScreenState extends State<AccountScreen> {
               Image.asset(
                 'lib/images/accountscreen.png',
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                errorBuilder: (_, _, _) => const SizedBox.shrink(),
               ),
               SafeArea(
                 top: true,
@@ -302,6 +304,21 @@ class _AccountScreenState extends State<AccountScreen> {
                     onTap: () {
                       Navigator.of(context).push(
                         WhatsAppConnectionScreen.route(),
+                      );
+                    },
+                  ),
+                  Divider(
+                    height: 1,
+                    indent: 20,
+                    endIndent: 20,
+                    color: isDark ? const Color(0x24FFFFFF) : const Color(0x1F000000),
+                  ),
+                  _SettingsListTile(
+                    title: 'Cadangan & Pemulihan Cloud',
+                    subtitle: 'Ekspor ZIP, simpan cadangan, & pulihkan stiker',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        CloudBackupScreen.route(),
                       );
                     },
                   ),
@@ -419,7 +436,7 @@ class _AccountScreenState extends State<AccountScreen> {
                           width: 58,
                           height: 58,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
+                          errorBuilder: (_, _, _) => Container(
                             color: const Color(0xFFF09A06),
                             child: const Icon(
                               Icons.sentiment_very_satisfied_rounded,
@@ -494,11 +511,32 @@ class _AccountScreenState extends State<AccountScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildStatItem('Paket', '$totalPacks', isDark),
+                _buildStatItem(
+                  'Paket',
+                  '$totalPacks',
+                  isDark,
+                  onTap: () => Navigator.of(context).push(
+                    CreatorCollectionScreen.route(initialTabIndex: 0),
+                  ),
+                ),
                 Container(width: 1, height: 28, color: Colors.white.withAlpha(25)),
-                _buildStatItem('Stiker', '$totalStickers', isDark),
+                _buildStatItem(
+                  'Stiker',
+                  '$totalStickers',
+                  isDark,
+                  onTap: () => Navigator.of(context).push(
+                    CreatorCollectionScreen.route(initialTabIndex: 1),
+                  ),
+                ),
                 Container(width: 1, height: 28, color: Colors.white.withAlpha(25)),
-                _buildStatItem('Di WA', '$installedPacks', isDark),
+                _buildStatItem(
+                  'Di WA',
+                  '$installedPacks',
+                  isDark,
+                  onTap: () => Navigator.of(context).push(
+                    CreatorCollectionScreen.route(initialTabIndex: 2),
+                  ),
+                ),
               ],
             ),
           ),
@@ -507,27 +545,39 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
-  Widget _buildStatItem(String label, String value, bool isDark) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 17,
-            fontWeight: FontWeight.bold,
-            color: const Color(0xFFF09A06),
-          ),
+  Widget _buildStatItem(
+    String label,
+    String value,
+    bool isDark, {
+    VoidCallback? onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFFF09A06),
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: isDark ? Colors.grey[300] : Colors.grey[600],
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: isDark ? Colors.grey[300] : Colors.grey[600],
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -566,15 +616,11 @@ class _LiquidGlassCard extends StatelessWidget {
   final Widget child;
   final double borderRadius;
   final EdgeInsetsGeometry? padding;
-  final EdgeInsetsGeometry? margin;
-  final double blur;
 
   const _LiquidGlassCard({
     required this.child,
-    this.borderRadius = 5.0,
+    this.borderRadius = 16.0,
     this.padding,
-    this.margin,
-    this.blur = 18.0,
   });
 
   @override
@@ -583,7 +629,6 @@ class _LiquidGlassCard extends StatelessWidget {
     final radius = BorderRadius.circular(borderRadius);
 
     return Container(
-      margin: margin,
       decoration: BoxDecoration(
         borderRadius: radius,
         boxShadow: [
@@ -602,7 +647,7 @@ class _LiquidGlassCard extends StatelessWidget {
       child: ClipRRect(
         borderRadius: radius,
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+          filter: ImageFilter.blur(sigmaX: 18.0, sigmaY: 18.0),
           child: Container(
             padding: padding,
             decoration: BoxDecoration(

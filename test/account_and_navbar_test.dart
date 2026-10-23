@@ -129,6 +129,7 @@ void main() {
       expect(find.text('PENGATURAN SISTEM'), findsOneWidget);
       expect(find.text('Perizinan & Preferensi'), findsOneWidget);
       expect(find.text('Integrasi WhatsApp'), findsOneWidget);
+      expect(find.text('Cadangan & Pemulihan Cloud'), findsOneWidget);
       expect(find.text('PENGATURAN LAINNYA'), findsOneWidget);
 
       // Open Tutorial Dialog
@@ -224,6 +225,28 @@ void main() {
         find.descendant(of: find.byType(AppBar), matching: find.byIcon(Icons.refresh_rounded)),
         findsNothing,
       );
+    });
+
+    testWidgets('Tapping Paket stat item navigates to CreatorCollectionScreen', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(splashFactory: InkRipple.splashFactory),
+          home: const AccountScreen(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Paket'), findsOneWidget);
+      expect(find.text('Stiker'), findsOneWidget);
+      expect(find.text('Di WA'), findsOneWidget);
+
+      await tester.tap(find.text('Paket'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Koleksi Kreator'), findsOneWidget);
+      expect(find.text('Belum Ada Paket Stiker'), findsOneWidget);
     });
   });
 

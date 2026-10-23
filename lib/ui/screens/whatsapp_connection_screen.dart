@@ -185,7 +185,7 @@ class _WhatsAppConnectionScreenState extends State<WhatsAppConnectionScreen>
           Image.asset(
             'lib/images/accountscreen.png',
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+            errorBuilder: (_, _, _) => const SizedBox.shrink(),
           ),
           SafeArea(
             top: true,
@@ -530,15 +530,11 @@ class _LiquidGlassCard extends StatelessWidget {
   final Widget child;
   final double borderRadius;
   final EdgeInsetsGeometry? padding;
-  final EdgeInsetsGeometry? margin;
-  final double blur;
 
   const _LiquidGlassCard({
     required this.child,
     this.borderRadius = 5,
     this.padding,
-    this.margin,
-    this.blur = 18,
   });
 
   @override
@@ -547,7 +543,6 @@ class _LiquidGlassCard extends StatelessWidget {
     final radius = BorderRadius.circular(borderRadius);
 
     return Container(
-      margin: margin,
       decoration: BoxDecoration(
         borderRadius: radius,
         boxShadow: [
@@ -566,7 +561,7 @@ class _LiquidGlassCard extends StatelessWidget {
       child: ClipRRect(
         borderRadius: radius,
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
           child: Container(
             padding: padding,
             decoration: BoxDecoration(

@@ -72,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Image.asset(
                     'lib/images/homescreen.png',
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    errorBuilder: (_, _, _) => const SizedBox.shrink(),
                   ),
                   SafeArea(
                     top: true,

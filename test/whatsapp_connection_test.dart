@@ -10,6 +10,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          theme: ThemeData(splashFactory: InkRipple.splashFactory),
           home: WhatsAppConnectionScreen(
             statusFetcher: () async => const WhatsAppDetailedStatus(
               isWhatsAppInstalled: false,
@@ -55,6 +56,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          theme: ThemeData(splashFactory: InkRipple.splashFactory),
           home: WhatsAppConnectionScreen(
             statusFetcher: () async => const WhatsAppDetailedStatus(
               isWhatsAppInstalled: true,
